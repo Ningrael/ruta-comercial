@@ -19,7 +19,6 @@
       --accent-purple: #a855f7;
       --accent-amber: #f59e0b;
       --accent-blue: #38bdf8;
-      --danger: #ef4444;
       --radius: 12px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -68,7 +67,7 @@
     }
     .stats-bar {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       margin-top: 14px;
       flex-wrap: wrap;
     }
@@ -83,6 +82,11 @@
       gap: 6px;
     }
     .stat-pill strong { color: #fff; }
+    .stat-pill.verified {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+    }
     .controls-section {
       max-width: 900px;
       margin: 16px auto;
@@ -102,9 +106,7 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    .search-input:focus {
-      border-color: var(--primary);
-    }
+    .search-input:focus { border-color: var(--primary); }
     .filter-group {
       display: flex;
       gap: 8px;
@@ -163,22 +165,31 @@
       font-weight: 700;
       color: #fff;
     }
-    .category-badge {
+    .card-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .badge {
       font-size: 11px;
       font-weight: 600;
       padding: 3px 8px;
       border-radius: 6px;
       white-space: nowrap;
     }
-    .badge-brunch { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
-    .badge-latino { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-brasil { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-verified { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-tequenos { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-prospect { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .badge-arcon { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3); }
+
     .card-address {
       font-size: 13px;
       color: var(--text-muted);
       display: flex;
       align-items: flex-start;
       gap: 6px;
+      margin-top: 2px;
     }
     .city-tag {
       background: rgba(255,255,255,0.06);
@@ -191,19 +202,27 @@
     .card-pitch {
       background: rgba(0,0,0,0.25);
       border-radius: 8px;
-      padding: 8px 12px;
+      padding: 10px 12px;
       font-size: 12px;
       color: #e2e8f0;
       border-left: 3px solid var(--primary);
     }
     .card-pitch strong {
-      color: #34d399;
       display: block;
       margin-bottom: 2px;
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+    .card-pitch.highlight-acai { border-left-color: #10b981; }
+    .card-pitch.highlight-acai strong { color: #34d399; }
+    .card-pitch.highlight-tequenos { border-left-color: #f59e0b; }
+    .card-pitch.highlight-tequenos strong { color: #fbbf24; }
+    .card-pitch.highlight-prospect { border-left-color: #94a3b8; }
+    .card-pitch.highlight-prospect strong { color: #cbd5e1; }
+    .card-pitch.highlight-arcon { border-left-color: #38bdf8; }
+    .card-pitch.highlight-arcon strong { color: #7dd3fc; }
+
     .card-actions {
       display: flex;
       gap: 8px;
@@ -263,8 +282,9 @@
       <p class="subtitle">Gavà • Castelldefels • Viladecans • Sant Boi • L'Hospitalet</p>
       <div class="stats-bar">
         <div class="stat-pill">📍 Total: <strong id="totalCount">0</strong></div>
+        <div class="stat-pill verified">⚡ Açaí Verificado: <strong id="verifiedCount">0</strong></div>
+        <div class="stat-pill">🥟 Tequeños en Carta: <strong id="tequenosCount">0</strong></div>
         <div class="stat-pill">✅ Visitados: <strong id="visitedCount">0</strong></div>
-        <div class="stat-pill">⏳ Pendientes: <strong id="pendingCount">0</strong></div>
       </div>
     </div>
   </header>
@@ -282,10 +302,11 @@
     </div>
 
     <div class="filter-group" id="typeFilters">
-      <button class="filter-chip active" data-type="all">Todos los tipos</button>
-      <button class="filter-chip" data-type="brunch">🥣 Brunch & Açaí</button>
-      <button class="filter-chip" data-type="latino">🏪 Tienda / Minimarket</button>
-      <button class="filter-chip" data-type="brasil">🇧🇷 Brasileño</button>
+      <button class="filter-chip active" data-type="all">Todos los estados</button>
+      <button class="filter-chip" data-type="acai-verified">⚡ Açaí en Carta Verificado</button>
+      <button class="filter-chip" data-type="tequenos-verified">🥟 Venden Tequeños en Carta</button>
+      <button class="filter-chip" data-type="arcon">🏪 Tienda / Arcón Congelador</button>
+      <button class="filter-chip" data-type="prospect">💡 Prospecto (No tienen hoy)</button>
     </div>
   </div>
 
@@ -293,273 +314,338 @@
 
   <script>
     const PLACES = [
-      // GAVÀ
+      // 1. GAVÀ
       {
         id: "gava-1",
         name: "Poke Brunch",
         city: "Gavà",
-        type: "brunch",
-        typeLabel: "Brunch & Bowls",
+        status: "acai-verified",
+        badgeText: "⚡ Açaí Verificado en Carta",
+        badgeClass: "badge-verified",
+        pitchClass: "highlight-acai",
+        pitchHeader: "🎯 Açaí en Carta Verificado (Bowl 550 cl)",
         address: "Carrer de Sant Pere, 26, 08850 Gavà",
-        pitch: "Polpa Norte: Açaí puro y bases tropicales para sus smoothie bowls diarios.",
+        pitch: "Tienen en carta activa su Açaí Bowl (550 cl). Son compradores directos de pulpa/base de açaí. Objetivo: sustituir su proveedor actual por Polpa Norte directa.",
         mapsQuery: "Poke Brunch Carrer de Sant Pere 26 Gava"
       },
       {
         id: "gava-2",
         name: "Market Bom Brasil",
         city: "Gavà",
-        type: "brasil",
-        typeLabel: "Tienda Brasileña & Salgados",
+        status: "acai-verified",
+        badgeText: "⚡ Venta Directa de Açaí & Salgados",
+        badgeClass: "badge-verified",
+        pitchClass: "highlight-acai",
+        pitchHeader: "🎯 Tienda Brasileña con Venta de Açaí",
         address: "Carrer de Fortià Casanovas, 14, 08850 Gavà",
-        pitch: "Polpa Norte oficial + Salgadinhos y pão de queijo congelados para hornear.",
+        pitch: "Venden açaí en tarrinas/potes y salgadinhos brasileños. Cliente natural para Polpa Norte y línea de congelados brasileños.",
         mapsQuery: "Market Bom Brasil Carrer de Fortia Casanovas 14 Gava"
       },
       {
         id: "gava-3",
         name: "Brasil y Cia",
         city: "Gavà",
-        type: "brasil",
-        typeLabel: "Tienda / Distribución Brasil",
+        status: "acai-verified",
+        badgeText: "⚡ Venta Directa de Açaí & Distribución",
+        badgeClass: "badge-verified",
+        pitchClass: "highlight-acai",
+        pitchHeader: "🎯 Especialista en Producto Brasileño",
         address: "Ctra. de Santa Creu de Calafell, 77, 08850 Gavà",
-        pitch: "Pulpa de açaí Polpa Norte y línea de congelados brasileños de alta rotación.",
+        pitch: "Tienda y almacén brasileño. Venden botes y pulpas de açaí congelado. Gran volumen potencial para Polpa Norte oficial.",
         mapsQuery: "Brasil y Cia Carretera de Santa Creu de Calafell 77 Gava"
       },
       {
         id: "gava-4",
         name: "Casa Latinos",
         city: "Gavà",
-        type: "latino",
-        typeLabel: "Alimentación Latina",
+        status: "arcon",
+        badgeText: "🏪 Tienda Latina / Arcón",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Arcones Congeladores (Venta al Público)",
         address: "Ctra. de Santa Creu de Calafell, 79, 08850 Gavà",
-        pitch: "Tequeños, arepas, empanadas y pulpas de frutas para arcones congeladores.",
+        pitch: "Colmado latino tradicional. Venta minorista de tequeños, empanadas, arepas y pulpas de frutas tropicales individuales.",
         mapsQuery: "Casa Latinos Carretera de Santa Creu de Calafell 79 Gava"
       },
       {
         id: "gava-5",
         name: "El Rincón Paisa",
         city: "Gavà",
-        type: "latino",
-        typeLabel: "Panadería & Tienda Colombiana",
+        status: "arcon",
+        badgeText: "🏪 Panadería & Tienda Colombiana",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Consumo de Pulpas y Congelados",
         address: "Carrer de Sant Lluís, 42, 08850 Gavà",
-        pitch: "Congelados tradicionales (arepas, empanadas) y pulpas para jugos naturales.",
+        pitch: "Consumen pulpas de frutas para jugos naturales en barra y venden arepas/empanadas congeladas.",
         mapsQuery: "El Rincon Paisa Gava"
       },
 
-      // CASTELLDEFELS (BRUNCH INDEPENDIENTE)
+      // 2. CASTELLDEFELS (EJE PLAYA / BRUNCH INDEPENDIENTE)
       {
         id: "cast-1",
         name: "Mojo Brunch Bar (Mojokite)",
         city: "Castelldefels",
-        type: "brunch",
-        typeLabel: "Brunch & Surf Terraza",
-        address: "Passeig Marítim / Av. dels Banys, 08860 Castelldefels",
-        pitch: "Polpa Norte directa de distribuidor: açaí bowl estrella matinal con máximo margen.",
+        status: "acai-verified",
+        badgeText: "⚡ Açaí Verificado en Carta (10,50€)",
+        badgeClass: "badge-verified",
+        pitchClass: "highlight-acai",
+        pitchHeader: "🎯 Açaí Bowl Estrella en Carta",
+        address: "Passeig Marítim / Av. República Argentina, 15, 08860 Castelldefels",
+        pitch: "Tienen el Açaí Bowl como plato estrella (10,50€ con toppings y crema de cacahuete). Alto volumen de consumo de pulpa.",
         mapsQuery: "Mojo Brunch Bar Castelldefels"
       },
       {
         id: "cast-2",
-        name: "City Açaí",
+        name: "City Açaí (City Poké)",
         city: "Castelldefels",
-        type: "brunch",
-        typeLabel: "Açaitería Independiente",
-        address: "Carrer d'Arcadi Balaguer, 45, 08860 Castelldefels",
-        pitch: "Pulpa de açaí y frutas amazónicas Polpa Norte sin intermediarios.",
-        mapsQuery: "City Acai Castelldefels"
+        status: "acai-verified",
+        badgeText: "⚡ Carta 100% Especializada en Açaí",
+        badgeClass: "badge-verified",
+        pitchClass: "highlight-acai",
+        pitchHeader: "🎯 Boles de Açaí Orgánico en Carta",
+        address: "Carrer del Doctor Barraquer, 20, 08860 Castelldefels",
+        pitch: "Carta completa de boles (Honolulu Bowl, Maui Bowl, Lanai Bowl). Consumo continuo de base de açaí congelada pura.",
+        mapsQuery: "City Poke Doctor Barraquer 20 Castelldefels"
       },
       {
         id: "cast-3",
+        name: "Celeste Beach & Brunch",
+        city: "Castelldefels",
+        status: "acai-verified",
+        badgeText: "⚡ Açaí Verificado en Carta",
+        badgeClass: "badge-verified",
+        pitchClass: "highlight-acai",
+        pitchHeader: "🎯 Açaí Bowl Frente a la Playa",
+        address: "Passeig Marítim / Carrer dels Madroños, 2, 08860 Castelldefels",
+        pitch: "Restaurante y cafetería de playa independiente con açaí bowl verificado en carta de desayunos y meriendas.",
+        mapsQuery: "Celeste Castelldefels Playa"
+      },
+      {
+        id: "cast-4",
         name: "Anouk Café",
         city: "Castelldefels",
-        type: "brunch",
-        typeLabel: "Specialty Coffee & Brunch",
-        address: "Carrer de Bisbe Urquinaona, 26, 08860 Castelldefels",
-        pitch: "Açaí y pulpas para desayunos saludables de alta calidad y ticket medio.",
-        mapsQuery: "Anouk Cafe Castelldefels"
+        status: "prospect",
+        badgeText: "💡 Prospecto (Bowls de Yogur)",
+        badgeClass: "badge-prospect",
+        pitchClass: "highlight-prospect",
+        pitchHeader: "🎯 NO tienen Açaí hoy (Tienen Bowls de Yogur)",
+        address: "Avinguda dels Banys, 33, 08860 Castelldefels",
+        pitch: "Cafetería de especialidad con gran tráfico. Venden boles de yogur con granola pero NO tienen açaí bowl: oportunidad de introducírselo.",
+        mapsQuery: "Anouk Cafe Avinguda dels Banys Castelldefels"
       },
 
-      // VILADECANS
+      // 3. VILADECANS
       {
         id: "vila-1",
-        name: "Green Day Coffee",
+        name: "El Toro Brunch & Burger",
         city: "Viladecans",
-        type: "brunch",
-        typeLabel: "Specialty Coffee & Brunch",
-        address: "Carrer de la Mare de Déu de Montserrat, 40, 08840 Viladecans",
-        pitch: "Bowls de açaí Polpa Norte y smoothies para combinar con café de especialidad.",
-        mapsQuery: "Green Day Coffee Viladecans"
+        status: "tequenos-verified",
+        badgeText: "🥟 Venden Tequeños en Carta",
+        badgeClass: "badge-tequenos",
+        pitchClass: "highlight-tequenos",
+        pitchHeader: "🎯 NO tienen Açaí — SÍ VENDEN TEQUEÑOS",
+        address: "Avinguda de la Roureda, 21 / Jaume Abril, 08840 Viladecans",
+        pitch: "NO venden açaí, pero tienen tequeños de trigo, maíz y nutella en su carta oficial. Objetivo: venderles nuestra línea de tequeños latinos.",
+        mapsQuery: "El Toro Brunch Avinguda de la Roureda 21 Viladecans"
       },
       {
         id: "vila-2",
-        name: "El Toro Brunch",
+        name: "Green Day Coffee",
         city: "Viladecans",
-        type: "brunch",
-        typeLabel: "Brunch Independiente",
-        address: "Carrer de Jaume Abril, 22, 08840 Viladecans",
-        pitch: "Incorporación de açaí bowls a la carta con suministro directo y receta rentable.",
-        mapsQuery: "El Toro Brunch Viladecans"
+        status: "prospect",
+        badgeText: "💡 Prospecto (Smoothies & Healthy)",
+        badgeClass: "badge-prospect",
+        pitchClass: "highlight-prospect",
+        pitchHeader: "🎯 NO tienen Açaí confirmado (Venden Smoothies)",
+        address: "Av. de la Torre Roja / Mare de Déu de Montserrat, 08840 Viladecans",
+        pitch: "Cafetería healthy de reciente apertura. Tienen smoothies y tostadas. Ideal para proponerles incorporar el bowl de açaí en su carta.",
+        mapsQuery: "Green Day Coffee Viladecans"
       },
       {
         id: "vila-3",
-        name: "Jiwa / Frescana (Vilamarina)",
-        city: "Viladecans",
-        type: "brunch",
-        typeLabel: "Healthy Bowls & Smoothies",
-        address: "CC Vilamarina, Av. del Segle XXI, 6, 08840 Viladecans",
-        pitch: "Pulpas de açaí y frutas exóticas para smoothies y boles en take away.",
-        mapsQuery: "Vilamarina Viladecans"
-      },
-      {
-        id: "vila-4",
         name: "La Casa de la Lechona",
         city: "Viladecans",
-        type: "latino",
-        typeLabel: "Obrador & Comida Latina",
+        status: "arcon",
+        badgeText: "🏪 Obrador Latino",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Consumo de Masas y Congelados",
         address: "Carrer del Roure, 31, 08840 Viladecans",
-        pitch: "Masas, empanadas, tequeños congelados y pulpas para jugos.",
+        pitch: "Obrador de comida colombiana y latina. Consumen empanadas, tequeños y pulpas para jugos.",
         mapsQuery: "La Casa de la Lechona Carrer del Roure 31 Viladecans"
       },
 
-      // SANT BOI DE LLOBREGAT
+      // 4. SANT BOI DE LLOBREGAT
       {
         id: "santboi-1",
         name: "Supermercat Tienda Latina",
         city: "Sant Boi",
-        type: "latino",
-        typeLabel: "Supermercado Latino Central",
+        status: "arcon",
+        badgeText: "🏪 Supermercado Latino Central",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Gran Batería de Arcones Congeladores",
         address: "Carrer Victòria, 60, 08830 Sant Boi de Llobregat",
-        pitch: "Gran volumen de arcones: tequeños, empanadas, arepas y pulpas de frutas.",
+        pitch: "El mayor punto de venta latino del Baix Llobregat. Venden al público tequeños, arepas, plátano congelado y pulpas de frutas.",
         mapsQuery: "Supermercat Tienda Latina Carrer Victoria 60 Sant Boi de Llobregat"
       },
       {
         id: "santboi-2",
         name: "El Sabor de Mi Tierra (Prototipo)",
         city: "Sant Boi",
-        type: "latino",
-        typeLabel: "Minimarket Latino Prototipo",
+        status: "arcon",
+        badgeText: "🏪 Prototipo Minimarket Latino",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Tu Prototipo Ideal de Barrio",
         address: "Carrer Victòria, 28, 08830 Sant Boi de Llobregat",
-        pitch: "El prototipo ideal: reposición ágil sin pedido mínimo abusivo.",
-        mapsQuery: "El Sabor de Mi Tierra Sant Boi de Llobregat"
+        pitch: "Colmado y locutorio con arcón de alta rotación. Demanda directa de tequeños y pulpas de frutas individuales.",
+        mapsQuery: "El Sabor de Mi Tierra Carrer Victoria 28 Sant Boi"
       },
       {
         id: "santboi-3",
         name: "Simple Brunch & Coffee",
         city: "Sant Boi",
-        type: "brunch",
-        typeLabel: "Brunch & Café de Especialidad",
+        status: "prospect",
+        badgeText: "💡 Prospecto Brunch",
+        badgeClass: "badge-prospect",
+        pitchClass: "highlight-prospect",
+        pitchHeader: "🎯 NO tienen Açaí confirmado",
         address: "Plaça de l'Ajuntament / Carrer Oms, 08830 Sant Boi de Llobregat",
-        pitch: "Açaí bowls y repostería artesanal con base de frutas Polpa Norte.",
+        pitch: "Bar-cafetería de desayunos y brunch clásico. Visita de prospección para ofrecerles introducir el bowl de açaí Polpa Norte.",
         mapsQuery: "Simple Brunch Sant Boi de Llobregat"
       },
-      {
-        id: "santboi-4",
-        name: "Tropicalissima",
-        city: "Sant Boi",
-        type: "latino",
-        typeLabel: "Zumos & Batidos Tropicales",
-        address: "Ronda Sant Ramon, 102, 08830 Sant Boi de Llobregat",
-        pitch: "Pulpas congeladas Polpa Norte para licuados y combinados tropicales.",
-        mapsQuery: "Tropicalissima Ronda Sant Ramon Sant Boi"
-      },
 
-      // L'HOSPITALET DE LLOBREGAT
+      // 5. L'HOSPITALET DE LLOBREGAT
       {
         id: "hosp-1",
-        name: "Barrio Café Brunch",
+        name: "Rayan Brunch & Coffee",
         city: "L'Hospitalet",
-        type: "brunch",
-        typeLabel: "Brunch & Desayunos",
-        address: "Carrer de Simancas, 74, 08904 L'Hospitalet de Llobregat",
-        pitch: "Açaí bowls y desayunos saludables con açaí premium oficial.",
-        mapsQuery: "Barrio Cafe Brunch Carrer de Simancas 74 Hospitalet de Llobregat"
+        status: "tequenos-verified",
+        badgeText: "🥟 Venden Tequeños en Carta",
+        badgeClass: "badge-tequenos",
+        pitchClass: "highlight-tequenos",
+        pitchHeader: "🎯 NO tienen Açaí — SÍ VENDEN TEQUEÑOS",
+        address: "Carrer de la Unió, 24 / Santa Eulàlia, 08902 L'Hospitalet",
+        pitch: "NO tienen açaí bowl en carta, pero tienen tequeños y patacones como entrante estrella. Objetivo: tequeños congelados Fuconsa.",
+        mapsQuery: "Rayan Brunch Carrer de la Unio 24 Hospitalet"
       },
       {
         id: "hosp-2",
-        name: "Rayan Brunch & Coffee",
+        name: "Barrio Café Brunch",
         city: "L'Hospitalet",
-        type: "brunch",
-        typeLabel: "Brunch Independiente",
-        address: "Carrer de Santa Eulàlia, 110, 08902 L'Hospitalet de Llobregat",
-        pitch: "Boles de açaí y pulpas de frutas para smoothies de carta.",
-        mapsQuery: "Rayan Brunch Carrer de Santa Eulalia Hospitalet"
+        status: "prospect",
+        badgeText: "💡 Prospecto Brunch",
+        badgeClass: "badge-prospect",
+        pitchClass: "highlight-prospect",
+        pitchHeader: "🎯 NO tienen Açaí hoy (Panadería/Tostadas)",
+        address: "Carrer de Simancas, 74, 08904 L'Hospitalet de Llobregat",
+        pitch: "Cafetería y panadería artesanal con buen tráfico. No tienen açaí: prospección para añadirlo a su oferta saludable.",
+        mapsQuery: "Barrio Cafe Brunch Carrer de Simancas 74 Hospitalet de Llobregat"
       },
       {
         id: "hosp-3",
         name: "Super Latino Flores (Collblanc)",
         city: "L'Hospitalet",
-        type: "latino",
-        typeLabel: "Supermercado Latino Mayorista",
+        status: "arcon",
+        badgeText: "🏪 Supermercado Latino Mayorista",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Arcones de Gran Volumen",
         address: "Carrer de Llobregat, 26, 08904 L'Hospitalet de Llobregat",
-        pitch: "Máxima afluencia de Collblanc. Línea completa de tequeños y congelados latinos.",
+        pitch: "Punto neurálgico de Collblanc. Mucho volumen de venta en arcones: tequeños, empanadas y pulpas de frutas congeladas.",
         mapsQuery: "Super Latino Flores Carrer de Llobregat 26 Hospitalet de Llobregat"
       },
       {
         id: "hosp-4",
         name: "Bodega Super Latino Flores",
         city: "L'Hospitalet",
-        type: "latino",
-        typeLabel: "Minimarket de Proximidad",
+        status: "arcon",
+        badgeText: "🏪 Minimarket de Barrio",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Arcón de Proximidad",
         address: "Rambla Catalana, 35, 08903 L'Hospitalet de Llobregat",
-        pitch: "Rotación constante de congelados y pulpas individuales para familias del barrio.",
+        pitch: "Tienda de conveniencia con arcón congelador de rotación diaria para la comunidad latina de La Torrassa.",
         mapsQuery: "Rambla Catalana 35 Hospitalet de Llobregat"
       },
       {
         id: "hosp-5",
         name: "Supermercado Rincón Latino",
         city: "L'Hospitalet",
-        type: "latino",
-        typeLabel: "Minimarket & Congelados",
+        status: "arcon",
+        badgeText: "🏪 Minimarket & Congelados",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Arcones de Congelados",
         address: "Carrer del Montseny, 105, 08904 L'Hospitalet de Llobregat",
-        pitch: "Arcón congelador con tequeños, empanadas y pulpa de frutas tropicales.",
+        pitch: "Tienda especializada en alimentación latina con arcones de tequeños, empanadas y pulpas.",
         mapsQuery: "Supermercado Rincon Latino Carrer del Montseny 105 Hospitalet"
       },
       {
         id: "hosp-6",
         name: "Colombia Pan y Sabor",
         city: "L'Hospitalet",
-        type: "latino",
-        typeLabel: "Panadería & Tienda Colombiana",
+        status: "arcon",
+        badgeText: "🏪 Panadería & Tienda Colombiana",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Consumo de Pulpas y Venta de Congelados",
         address: "Av. de Miraflores, 48, 08905 L'Hospitalet de Llobregat",
-        pitch: "Consumen pulpas para jugos naturales y despachan empanadas/arepas congeladas.",
+        pitch: "Consumen pulpas para jugos naturales en barra y venden empanadas y arepas congeladas.",
         mapsQuery: "Colombia Pan y Sabor Avinguda de Miraflores 48 Hospitalet"
       },
       {
         id: "hosp-7",
         name: "Supermercado Tropi",
         city: "L'Hospitalet",
-        type: "latino",
-        typeLabel: "Minimarket Latino",
+        status: "arcon",
+        badgeText: "🏪 Minimarket Latino",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Venta Minorista en Arcón",
         address: "Av. de Miraflores, 98, 08905 L'Hospitalet de Llobregat",
-        pitch: "Surtido de congelados latinos y pulpas en la arteria principal de La Florida.",
+        pitch: "Arcones congeladores en plena Avenida Miraflores (La Florida).",
         mapsQuery: "Avenida Miraflores 98 Hospitalet de Llobregat"
       },
       {
         id: "hosp-8",
         name: "Productes Llatins Primavera",
         city: "L'Hospitalet",
-        type: "latino",
-        typeLabel: "Tienda Latina Tradicional",
+        status: "arcon",
+        badgeText: "🏪 Tienda Latina Tradicional",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Congelados y Pulpas de Importación",
         address: "Av. de la Primavera, 39, 08905 L'Hospitalet de Llobregat",
-        pitch: "Arcones de barrio con demanda de empanadas, tequeños y fruta congelada.",
+        pitch: "Tienda tradicional con arcones de alimentos de importación y pulpas de frutas.",
         mapsQuery: "Avinguda de la Primavera 39 Hospitalet de Llobregat"
       },
       {
         id: "hosp-9",
         name: "Carnicería Latina MEL & Frutas",
         city: "L'Hospitalet",
-        type: "latino",
-        typeLabel: "Carnicería & Congelados",
+        status: "arcon",
+        badgeText: "🏪 Carnicería & Congelados",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Complemento de Arcón",
         address: "Carrer Montseny / Plaça de la Constitució, 08904 L'Hospitalet",
-        pitch: "Complemento perfecto para el arcón congelador: tequeños y aperitivos para freír.",
+        pitch: "Carnicería con arcones donde venden tequeños y empanadas para freír en casa.",
         mapsQuery: "Placa de la Constitucio Carrer Montseny Hospitalet"
       },
       {
         id: "hosp-10",
         name: "Tienda Latina Los Porteños",
         city: "L'Hospitalet",
-        type: "latino",
-        typeLabel: "Alimentación Latina de Barrio",
+        status: "arcon",
+        badgeText: "🏪 Alimentación Latina",
+        badgeClass: "badge-arcon",
+        pitchClass: "highlight-arcon",
+        pitchHeader: "🎯 Arcón de Proximidad",
         address: "Av. del Masnou, 45, 08905 L'Hospitalet de Llobregat",
-        pitch: "Productos de importación y pulpas de frutas congeladas de reposición regular.",
+        pitch: "Colmado de proximidad con demanda de congelados latinos y pulpas de frutas.",
         mapsQuery: "Avinguda del Masnou 45 Hospitalet de Llobregat"
       }
     ];
@@ -569,18 +655,16 @@
     let currentType = 'all';
     let searchQuery = '';
 
-    function getBadgeClass(type) {
-      if (type === 'brunch') return 'badge-brunch';
-      if (type === 'brasil') return 'badge-brasil';
-      return 'badge-latino';
-    }
-
     function updateStats() {
       const total = PLACES.length;
       const visited = Object.values(visitedState).filter(Boolean).length;
+      const verified = PLACES.filter(p => p.status === 'acai-verified').length;
+      const tequenos = PLACES.filter(p => p.status === 'tequenos-verified').length;
+      
       document.getElementById('totalCount').textContent = total;
+      document.getElementById('verifiedCount').textContent = verified;
+      document.getElementById('tequenosCount').textContent = tequenos;
       document.getElementById('visitedCount').textContent = visited;
-      document.getElementById('pendingCount').textContent = total - visited;
     }
 
     function toggleVisited(id) {
@@ -594,9 +678,9 @@
       const container = document.getElementById('placesGrid');
       const filtered = PLACES.filter(p => {
         const matchCity = currentCity === 'all' || p.city === currentCity;
-        const matchType = currentType === 'all' || p.type === currentType;
+        const matchType = currentType === 'all' || p.status === currentType;
         const q = searchQuery.toLowerCase().trim();
-        const matchSearch = !q || p.name.toLowerCase().includes(q) || p.address.toLowerCase().includes(q) || p.city.toLowerCase().includes(q);
+        const matchSearch = !q || p.name.toLowerCase().includes(q) || p.address.toLowerCase().includes(q) || p.city.toLowerCase().includes(q) || p.pitch.toLowerCase().includes(q);
         return matchCity && matchType && matchSearch;
       });
 
@@ -618,11 +702,13 @@
                   <span>${p.address}</span>
                 </div>
               </div>
-              <span class="category-badge ${getBadgeClass(p.type)}">${p.typeLabel}</span>
+              <div class="card-badges">
+                <span class="badge ${p.badgeClass}">${p.badgeText}</span>
+              </div>
             </div>
 
-            <div class="card-pitch">
-              <strong>🎯 Gancho de Venta</strong>
+            <div class="card-pitch ${p.pitchClass}">
+              <strong>${p.pitchHeader}</strong>
               ${p.pitch}
             </div>
 
